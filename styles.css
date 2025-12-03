@@ -685,6 +685,24 @@ a:focus-visible {
     box-shadow: 0 0 10px var(--accent-primary);
 }
 
+/* Template Banner */
+#templateBanner {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+#templateBanner a:hover {
+    transform: scale(1.05);
+}
+
+#templateBanner button:hover {
+    transform: rotate(90deg);
+}
+
+#templateBanner button {
+    transition: transform 0.3s ease;
+}
+
 /* Navigation Enhancements */
 nav a {
     position: relative;

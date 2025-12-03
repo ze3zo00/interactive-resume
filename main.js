@@ -336,11 +336,28 @@ function initSmoothScroll() {
 
             const target = document.querySelector(href);
             if (target) {
-                const offsetTop = target.offsetTop - 80; // Account for fixed nav
+                // For top/profile section, scroll to top (0)
+                // For experience and clone sections, account for section padding to show heading at top
+                // For other sections, offset by 80px for nav
+                let offsetTop;
+                if (href === '#top' || href === '#profile') {
+                    offsetTop = 0;
+                } else if (href === '#experience') {
+                    // Experience section has py-24 (96px top padding), need larger offset
+                    offsetTop = target.offsetTop - 100;
+                } else if (href === '#clone') {
+                    // Clone section has py-20 (80px top padding), adjust accordingly
+                    offsetTop = target.offsetTop - 100;
+                } else {
+                    offsetTop = target.offsetTop - 80;
+                }
 
-                window.scrollTo({
-                    top: offsetTop,
-                    behavior: 'smooth'
+                // Use requestAnimationFrame to ensure scroll happens after event processing
+                requestAnimationFrame(() => {
+                    window.scrollTo({
+                        top: offsetTop,
+                        behavior: 'smooth'
+                    });
                 });
 
                 // Update URL without jumping
@@ -394,7 +411,9 @@ function initActiveNavigation() {
                     link.classList.remove('text-accent-blue');
                     link.classList.add('text-white/60');
 
-                    if (link.getAttribute('href') === `#${sectionId}`) {
+                    const linkHref = link.getAttribute('href');
+                    // Highlight #top link when on profile section
+                    if (linkHref === `#${sectionId}` || (sectionId === 'profile' && linkHref === '#top')) {
                         link.classList.add('text-accent-blue');
                         link.classList.remove('text-white/60');
                     }
@@ -543,6 +562,113 @@ function initDownloadTracking() {
 }
 
 // ===================================
+// Template Banner
+// ===================================
+
+function initTemplateBanner() {
+    const banner = document.getElementById('templateBanner');
+    const closeButton = document.getElementById('closeBanner');
+
+    if (!banner || !closeButton) return;
+
+    // Check if banner was previously closed
+    const bannerClosed = sessionStorage.getItem('templateBannerClosed');
+
+    if (bannerClosed === 'true') {
+        banner.style.transform = 'translateY(-100%)';
+        banner.style.display = 'none';
+        return;
+    }
+
+    // Close banner on button click
+    closeButton.addEventListener('click', () => {
+        banner.style.transform = 'translateY(-100%)';
+        setTimeout(() => {
+            banner.style.display = 'none';
+        }, 300);
+        sessionStorage.setItem('templateBannerClosed', 'true');
+    });
+
+    // Adjust page padding when banner is visible
+    if (banner.offsetHeight > 0) {
+        document.body.style.paddingTop = `${banner.offsetHeight}px`;
+    }
+}
+
+/**
+ * Initialize Back to Top Button
+ * Shows floating button that scrolls page to top
+ * Button follows user while scrolling and matches theme
+ */
+function initBackToTop() {
+    const backToTopButton = document.getElementById('backToTop');
+
+    if (!backToTopButton) {
+        console.warn('Back to top button not found');
+        return;
+    }
+
+    // Smooth scroll to top when clicked
+    backToTopButton.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+
+    // Optional: Show/hide based on scroll position
+    // Uncomment if you want the button to appear only after scrolling down
+    /*
+    window.addEventListener('scroll', debounce(() => {
+        if (window.scrollY > 300) {
+            backToTopButton.style.display = 'flex';
+        } else {
+            backToTopButton.style.display = 'none';
+        }
+    }, 100));
+    */
+}
+
+/**
+ * Initialize Welcome Message Popup
+ * Shows iMessage-style welcome notification
+ * Auto-dismisses after 7 seconds
+ */
+function initWelcomeMessage() {
+    const welcomeMessage = document.getElementById('welcomeMessage');
+    const closeButton = document.getElementById('closeWelcome');
+
+    if (!welcomeMessage) {
+        return;
+    }
+
+    // Function to show the message
+    function showWelcomeMessage() {
+        welcomeMessage.style.transform = 'translateY(0)';
+        welcomeMessage.style.opacity = '1';
+
+        // Auto-dismiss after 7 seconds
+        setTimeout(() => {
+            hideWelcomeMessage();
+        }, 7000);
+    }
+
+    // Function to hide the message
+    function hideWelcomeMessage() {
+        welcomeMessage.style.transform = 'translateY(8rem)';
+        welcomeMessage.style.opacity = '0';
+    }
+
+    // Close button handler
+    if (closeButton) {
+        closeButton.addEventListener('click', hideWelcomeMessage);
+    }
+
+    // Show message after page loads
+    setTimeout(showWelcomeMessage, 500);
+}
+
+// ===================================
 // Initialization
 // ===================================
 
@@ -559,6 +685,9 @@ function init() {
     initKeyboardNavigation();
     initLazyLoading();
     initDownloadTracking();
+    initTemplateBanner();
+    initBackToTop();
+    initWelcomeMessage();
 
     // Performance monitoring (development only)
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
